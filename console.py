@@ -1,5 +1,5 @@
 #!/usr/bin/python3
-""" Console Module """
+"""Console Module"""
 import cmd
 import sys
 sys.path.insert(0, '/home/kati/AirBnB_clone_v2/myenv/lib/python3.11')
