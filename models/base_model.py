@@ -6,6 +6,11 @@ from datetime import datetime
 
 class BaseModel:
     """A base class for all hbnb models"""
+    # Added id, created_at, and updated_at as class attributes
+    id = Column(String(60), nullable=False, primary_key=True)
+    created_at = Column(DateTime, nullable=False, default=datetime.utcnow())
+    updated_at = Column(DateTime, nullable=False, default=datetime.utcnow())
+
     def __init__(self, *args, **kwargs):
         """Instatntiates a new model"""
         if not kwargs:
@@ -15,12 +20,17 @@ class BaseModel:
             self.updated_at = datetime.now()
             storage.new(self)
         else:
-            kwargs['updated_at'] = datetime.strptime(kwargs['updated_at'],
-                                                     '%Y-%m-%dT%H:%M:%S.%f')
-            kwargs['created_at'] = datetime.strptime(kwargs['created_at'],
-                                                     '%Y-%m-%dT%H:%M:%S.%f')
-            del kwargs['__class__']
-            self.__dict__.update(kwargs)
+            # Set instance attributes from kwargs dictionary
+            for k, v in kwargs.items():
+                if k != '__class__':
+                    setattr(self, k, v)
+            # default values for id created_at and updated_at if not provided
+            if 'id' not in kwargs:
+                self.id = str(uuid.uuid4())
+            if 'created_at' not in kwargs:
+                self.created_at = datetime.utcnow()
+            if 'updated_at' not in kwargs:
+                self.updated_at = datetime.utcnow()
 
     def __str__(self):
         """Returns a string representation of the instance"""
@@ -30,7 +40,9 @@ class BaseModel:
     def save(self):
         """Updates updated_at with current time when instance is changed"""
         from models import storage
-        self.updated_at = datetime.now()
+        # Moved storage.new(self) from __init__ to save
+        storage.new(self)
+        self.updated_at = datetime.utcnow()
         storage.save()
 
     def to_dict(self):
@@ -41,4 +53,11 @@ class BaseModel:
                           (str(type(self)).split('.')[-1]).split('\'')[0]})
         dictionary['created_at'] = self.created_at.isoformat()
         dictionary['updated_at'] = self.updated_at.isoformat()
+        dictionary.pop('_sa_instance_state', None)
         return dictionary
+
+    # Add a new public instance method: def delete(self)
+    def delete(self):
+        """Delete the current instance from the storage"""
+        from models import storage
+        storage.delete(self)
