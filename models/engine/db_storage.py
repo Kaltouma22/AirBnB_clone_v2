@@ -31,7 +31,7 @@ class DBStorage:
             Base.metadata.drop_all(self.__engine)
 
         Session = sessionmaker(bind=self.__engine, expire_on_commit=False)
-        self.__session = scoped_session(Session)
+       self.__session = scoped_session(Session)
 
     def all(self, cls=None):
         """Query on the current database session"""
